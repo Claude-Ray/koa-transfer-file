@@ -1,0 +1,26 @@
+{
+  "name": "koa-transfer-file",
+  "version": "0.0.1",
+  "description": "transfer file stream without saving to disk",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Claude-Ray/koa-transfer-file.git"
+  },
+  "author": "claude-ray",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Claude-Ray/koa-transfer-file/issues"
+  },
+  "homepage": "https://github.com/Claude-Ray/koa-transfer-file#readme",
+  "dependencies": {
+    "append-field": "^1.0.0",
+    "busboy": "^0.2.14"
+  },
+  "devDependencies": {
+    "koa": "^2.5.1"
+  }
+}
