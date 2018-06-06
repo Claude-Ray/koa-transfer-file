@@ -58,3 +58,7 @@ rs.push(file.value);
 rs.pipe(fs.createWriteStream(file.filename))
   .on('finish', () => console.log('saved'));;
 ```
+
+## Todo
+
+- [ ] Converting `Stream` to `Buffer` by array is unsafe when transferring big files. To avoid this problem, using file stream as a default. Delete the temp file after new `Readable` stream is built.
