@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const appendField = require('append-field');
 const Busboy = require('busboy');
 
@@ -8,6 +11,13 @@ module.exports = opts => async (ctx, next) => {
 
   try {
     const { files, fields } = await makeMiddleware(ctx.req, opts);
+
+    fields._files = opts.noDisk
+      ? files.map(({ value, filename, mimetype }) => ({
+        value, options: { filename, contentType: mimetype }
+      }))
+      : files;
+
     ctx.request.files = files;
     ctx.request.body = fields;
   } catch (e) {
@@ -20,35 +30,21 @@ module.exports = opts => async (ctx, next) => {
 function makeMiddleware(req, opts = {}) {
   return new Promise((resolve, reject) => {
     const files = [];
-    const fields = Object.create(null);
+    const fields = {};
+    const cacheFn = opts.noDisk ? onMem : onDisk;
 
-    const busboy = new Busboy(Object.assign({}, opts, {headers: req.headers}));
+    const busboy = new Busboy(Object.assign({}, opts, { headers: req.headers }));
 
     busboy.on('file', (fieldname, fileStream, filename, encoding, mimetype) => {
       if (!filename) return fileStream.resume();
-
-      files.push(new Promise((resolve, reject) => {
-        const bufs = [];
-
-        fileStream
-          .on('data', chunk => bufs.push(chunk))
-          .on('error', reject)
-          .on('end', () =>
-            resolve({
-              filename,
-              fieldname,
-              encoding,
-              mimetype,
-              value: Buffer.concat(bufs),
-              truncated: fileStream.truncated
-            })
-          );
-      }));
+      files.push(cacheFn(fieldname, fileStream, filename, encoding, mimetype));
     });
 
     busboy.on('field', (key, val, keyTrunc, valTrunc) => {
       if (keyTrunc) return reject(new Error(`Field name too long(${key})`));
       if (valTrunc) return reject(new Error(`Field value too long(${key})`));
+
+      if (key === 'hasOwnProperty') key = `_${key}`;
 
       return appendField(fields, key, val);
     });
@@ -65,5 +61,59 @@ function makeMiddleware(req, opts = {}) {
     );
 
     req.pipe(busboy);
+  });
+}
+
+/**
+ * @fixme When sending files to another server,
+ * filenames will be changed into tmpName because of the new readable stream.
+ */
+function onDisk(fieldname, fileStream, filename, encoding, mimetype) {
+  return new Promise((resolve, reject) => {
+    const tmpName = Date.now() + process.pid + fieldname + filename;
+    const tmpPath = path.join(os.tmpdir(), path.basename(tmpName));
+
+    fileStream.pipe(fs.createWriteStream(tmpPath))
+      .on('error', reject)
+      .on('finish', () => {
+        const rs = fs.createReadStream(tmpPath);
+        rs.on('end', () => {
+          try {
+            fs.unlinkSync(tmpPath);
+          } catch (e) {
+            reject(e);
+          }
+        });
+
+        Object.assign(rs, {
+          filename,
+          fieldname,
+          encoding,
+          mimetype,
+          truncated: fileStream.truncated
+        });
+
+        resolve(rs);
+      });
+  });
+}
+
+function onMem(fieldname, fileStream, filename, encoding, mimetype) {
+  return new Promise((resolve, reject) => {
+    const bufs = [];
+
+    fileStream
+      .on('data', chunk => bufs.push(chunk))
+      .on('error', reject)
+      .on('end', () =>
+        resolve({
+          filename,
+          fieldname,
+          encoding,
+          mimetype,
+          value: Buffer.concat(bufs),
+          truncated: fileStream.truncated
+        })
+      );
   });
 }

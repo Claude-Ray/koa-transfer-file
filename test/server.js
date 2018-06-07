@@ -29,6 +29,7 @@ app.use((ctx, next) => {
     rs.pipe(fs.createWriteStream(file.filename))
       .on('finish', () => console.log('saved'));
   });
+  next();
 });
 
 app.on('error', e => {
