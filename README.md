@@ -61,6 +61,6 @@ rs.pipe(fs.createWriteStream(file.filename))
 
 ## Todo
 
-- [ x ] Converting `Stream` to `Buffer` by array is unsafe when transferring big files. To avoid this problem, using file stream as a default. Delete the temp file after new `Readable` stream is built.
+- [x] Converting `Stream` to `Buffer` by array is unsafe when transferring big files. To avoid this problem, using file stream as a default. Delete the temp file after new `Readable` stream is built.
 
-- [ ] When sending files to another server, filenames will be changed into tmpName because of the new readable stream.
+- [x] When sending files to another server, filenames will be changed into tmpName because of the new readable stream. Solved by adding property `name` to the readable stream, due to the package `form-data` will name the file by `filestream.name` or `filestream.path` when appending data.

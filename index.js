@@ -90,6 +90,7 @@ function onDisk(fieldname, fileStream, filename, encoding, mimetype) {
           fieldname,
           encoding,
           mimetype,
+          name: filename,
           truncated: fileStream.truncated
         });
 
