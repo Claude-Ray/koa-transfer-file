@@ -3,7 +3,6 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const appendField = require('append-field');
 const Busboy = require('busboy');
 
 module.exports = opts => async (ctx, next) => {
@@ -27,6 +26,13 @@ module.exports = opts => async (ctx, next) => {
   return next();
 };
 
+/**
+ * parse form-data
+ * @param {object}  req            ctx.req
+ * @param {object}  [opts]         options for busboy
+ * @param {boolean} [opts.noDisk]  IO on disk or memory
+ * @return {{files: array, fields: object}}
+ */
 function makeMiddleware(req, opts = {}) {
   return new Promise((resolve, reject) => {
     const files = [];
@@ -46,7 +52,7 @@ function makeMiddleware(req, opts = {}) {
 
       if (key === 'hasOwnProperty') key = `_${key}`;
 
-      return appendField(fields, key, val);
+      return fields[key] = val;
     });
 
     busboy.on('error', reject);
@@ -64,10 +70,6 @@ function makeMiddleware(req, opts = {}) {
   });
 }
 
-/**
- * @fixme When sending files to another server,
- * filenames will be changed into tmpName because of the new readable stream.
- */
 function onDisk(fieldname, fileStream, filename, encoding, mimetype) {
   return new Promise((resolve, reject) => {
     const tmpName = Date.now() + process.pid + fieldname + filename;

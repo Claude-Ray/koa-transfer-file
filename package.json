@@ -1,6 +1,6 @@
 {
   "name": "koa-transfer-file",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "transfer file stream without saving to disk",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/Claude-Ray/koa-transfer-file#readme",
   "dependencies": {
-    "append-field": "^1.0.0",
     "busboy": "^0.2.14"
   },
   "devDependencies": {
