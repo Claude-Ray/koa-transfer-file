@@ -73,7 +73,9 @@ function makeMiddleware(req, opts = {}) {
 function onDisk(fieldname, fileStream, filename, encoding, mimetype) {
   return new Promise((resolve, reject) => {
     const tmpName = Date.now() + process.pid + fieldname + filename;
-    const tmpPath = path.join(os.tmpdir(), path.basename(tmpName));
+    const tmpPath = path.join(os.tmpdir(), path.basename(tmpName))
+      // To Avoid Error: `Path must be a string without null bytes`
+      .replace('\u0000', '');
 
     fileStream.pipe(fs.createWriteStream(tmpPath))
       .on('error', reject)
