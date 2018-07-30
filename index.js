@@ -11,11 +11,13 @@ module.exports = opts => async (ctx, next) => {
   try {
     const { files, fields } = await makeMiddleware(ctx.req, opts);
 
-    fields._files = opts.noDisk
-      ? files.map(({ value, filename, mimetype }) => ({
-        value, options: { filename, contentType: mimetype }
-      }))
-      : files;
+    if (files.length) {
+      fields._files = opts.noDisk
+        ? files.map(({ value, filename, mimetype }) => ({
+          value, options: { filename, contentType: mimetype }
+        }))
+        : files;
+    }
 
     ctx.request.files = files;
     ctx.request.body = fields;
