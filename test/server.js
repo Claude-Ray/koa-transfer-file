@@ -11,6 +11,7 @@ const transfer = require('..');
 const app = new Koa();
 
 app.use(transfer({
+  noDisk: true,
   limits: {
     files: 2,
     fileSize: 1024 * 15
