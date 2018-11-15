@@ -83,13 +83,7 @@ function onDisk(fieldname, fileStream, filename, encoding, mimetype) {
       .on('error', reject)
       .on('finish', () => {
         const rs = fs.createReadStream(tmpPath);
-        rs.on('end', () => {
-          try {
-            fs.unlinkSync(tmpPath);
-          } catch (e) {
-            reject(e);
-          }
-        });
+        rs.on('end', () => fs.unlink(tmpPath, e => e && reject(e)));
 
         Object.assign(rs, {
           filename,
