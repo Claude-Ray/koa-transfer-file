@@ -9,7 +9,7 @@ module.exports = opts => async (ctx, next) => {
   if (!ctx.is('multipart')) return next();
 
   try {
-    const { files, fields } = await makeMiddleware(ctx.req, opts);
+    const { files, fields } = await multipartParser(ctx.req, opts);
 
     if (files.length) {
       fields._files = opts.noDisk
@@ -35,17 +35,17 @@ module.exports = opts => async (ctx, next) => {
  * @param {boolean} [opts.noDisk]  IO on disk or memory
  * @return {{files: array, fields: object}}
  */
-function makeMiddleware(req, opts = {}) {
+function multipartParser(req, opts = {}) {
   return new Promise((resolve, reject) => {
     const files = [];
     const fields = {};
-    const cacheFn = opts.noDisk ? onMem : onDisk;
+    const adapterFunc = opts.noDisk ? toBuffer : toReadStream;
 
     const busboy = new Busboy(Object.assign({}, opts, { headers: req.headers }));
 
     busboy.on('file', (fieldname, fileStream, filename, encoding, mimetype) => {
       if (!filename) return fileStream.resume();
-      files.push(cacheFn(fieldname, fileStream, filename, encoding, mimetype));
+      files.push(adapterFunc(fieldname, fileStream, filename, encoding, mimetype));
     });
 
     busboy.on('field', (key, val, keyTrunc, valTrunc) => {
@@ -72,7 +72,7 @@ function makeMiddleware(req, opts = {}) {
   });
 }
 
-function onDisk(fieldname, fileStream, filename, encoding, mimetype) {
+function toReadStream(fieldname, fileStream, filename, encoding, mimetype) {
   return new Promise((resolve, reject) => {
     const tmpName = Date.now() + process.pid + fieldname + filename;
     const tmpPath = path.join(os.tmpdir(), path.basename(tmpName))
@@ -99,7 +99,7 @@ function onDisk(fieldname, fileStream, filename, encoding, mimetype) {
   });
 }
 
-function onMem(fieldname, fileStream, filename, encoding, mimetype) {
+function toBuffer(fieldname, fileStream, filename, encoding, mimetype) {
   return new Promise((resolve, reject) => {
     const bufs = [];
 
