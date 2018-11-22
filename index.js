@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const Busboy = require('busboy');
 
-module.exports = opts => async (ctx, next) => {
+module.exports = (opts = {}) => async (ctx, next) => {
   if (!ctx.is('multipart')) return next();
 
   try {
