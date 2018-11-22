@@ -39,7 +39,33 @@ ctx.request.files.forEach(file => {
 ```
 
 ## Transfer
-transfer formData by `request`
+1. `opts.noDisk` = true.
+
+Transfer formData by `request` directly.
+```js
+const Koa = require('koa');
+const request = require('request-promise');
+const app = new Koa();
+
+app.use(transfer({
+  noDisk: true,
+  limits: {
+    files: 2,
+    fileSize: 1024 * 15
+  }
+}));
+
+app.use((ctx, next) => {
+  request({
+    method: 'POST',
+    uri: 'http://localhost:3000',
+    formData: ctx.request.body
+  });
+  next();
+});
+```
+
+Or configure the formData manually.
 ```js
 const formData = {};
 
@@ -60,7 +86,7 @@ For each `file` of `ctx.request.files`:
 const rs = file;
 ```
 
-2. When `opts.onDisk` is set to false, `file.value` contains a Buffer.
+2. When `opts.noDisk` is set to false, `file.value` contains a Buffer.
 ```js
 const { Readable } = require('stream');
 
