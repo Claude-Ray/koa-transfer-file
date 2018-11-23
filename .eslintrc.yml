@@ -3,6 +3,7 @@ extends: standard
 env:
   node: true
   es6: true
+  jest: true
 
 parserOptions:
   ecmaVersion: 2018
@@ -33,4 +34,3 @@ rules:
   arrow-spacing: [2, {before: true, after: true}]
   # disallow the use of console
   no-console: 2
-  

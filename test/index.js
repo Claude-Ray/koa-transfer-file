@@ -1,2 +1,0 @@
-require('./middle');
-require('./server');
