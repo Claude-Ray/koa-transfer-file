@@ -8,15 +8,17 @@ const Busboy = require('busboy');
 module.exports = (opts = {}) => async (ctx, next) => {
   if (!ctx.is('multipart')) return next();
 
+  if (opts.onDisk == null) opts.onDisk = true;
+
   try {
     const { files, fields } = await multipartParser(ctx.req, opts);
 
     if (files.length) {
-      fields._files = opts.noDisk
-        ? files.map(({ value, filename, mimetype }) => ({
+      fields._files = opts.onDisk
+        ? files
+        : files.map(({ value, filename, mimetype }) => ({
           value, options: { filename, contentType: mimetype }
-        }))
-        : files;
+        }));
     }
 
     ctx.request.files = files;
@@ -32,14 +34,14 @@ module.exports = (opts = {}) => async (ctx, next) => {
  * parse form-data
  * @param {object}  req            ctx.req
  * @param {object}  [opts]         options for busboy
- * @param {boolean} [opts.noDisk]  IO on disk or memory
+ * @param {boolean} [opts.onDisk]  IO on disk or memory
  * @return {{files: array, fields: object}}
  */
 function multipartParser(req, opts = {}) {
   return new Promise((resolve, reject) => {
     const files = [];
     const fields = {};
-    const adapterFunc = opts.noDisk ? toBuffer : toReadStream;
+    const adapterFunc = opts.onDisk ? toReadStream : toBuffer;
 
     const busboy = new Busboy(Object.assign({}, opts, { headers: req.headers }));
 

@@ -1,8 +1,10 @@
 # koa-transfer-file
+[![Build Status](https://travis-ci.org/Claude-Ray/koa-transfer-file.svg?branch=master)](https://travis-ci.org/Claude-Ray/koa-transfer-file)
+
 transfer file stream without saving to disk
 
 ## Featured
-- option `noDisk`: (boolean) It determines whether disk I/O is being used during transmission. Converting `Stream` to `Buffer` by array is unsafe when transferring big files. To avoid this problem, using file stream as a default. The temp file will be deleted after new `Readable` stream is built.
+- option `onDisk`: (boolean) It determines whether disk I/O is being used during transmission. Converting `Stream` to `Buffer` by array is unsafe when transferring big files. To avoid this problem, using file stream as a default. The temp file will be deleted after new `Readable` stream is built.
 
 - maintain files' name: When sending files to another server, filenames will be changed into tmpName because of the new readable stream. Solved by adding property `name` to the readable stream, due to the package `form-data` will name the file by `filestream.name` or `filestream.path` when appending data.
 
@@ -15,7 +17,7 @@ const transfer = require('koa-transfer-file');
 const app = new Koa();
 
 const options = {
-  noDisk: false, // (default false)
+  onDisk: true, // (boolean, default true)
   limits: {
     fileSize: 1024 * 5
   }
@@ -39,33 +41,22 @@ ctx.request.files.forEach(file => {
 ```
 
 ## Transfer
-1. `opts.noDisk` = true.
-
 Transfer formData by `request` directly.
 ```js
-const Koa = require('koa');
 const request = require('request-promise');
-const app = new Koa();
-
-app.use(transfer({
-  noDisk: true,
-  limits: {
-    files: 2,
-    fileSize: 1024 * 15
-  }
-}));
 
 app.use((ctx, next) => {
+  const formData = ctx.request.body;
   request({
     method: 'POST',
     uri: 'http://localhost:3000',
-    formData: ctx.request.body
+    formData
   });
   next();
 });
 ```
 
-Or configure the formData manually.
+Or configure the formData's value manually when `opts.onDisk=false`.
 ```js
 const formData = {};
 
@@ -86,7 +77,7 @@ For each `file` of `ctx.request.files`:
 const rs = file;
 ```
 
-2. When `opts.noDisk` is set to false, `file.value` contains a Buffer.
+2. When `opts.onDisk` is set to false, `file.value` contains a Buffer.
 ```js
 const { Readable } = require('stream');
 

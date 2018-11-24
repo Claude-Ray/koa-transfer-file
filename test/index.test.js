@@ -32,7 +32,7 @@ describe('transfer', () => {
 
   test('transfer buffer', async () => {
     const buff = Buffer.from('test buffer');
-    app.use(transfer({ noDisk: true }));
+    app.use(transfer({ onDisk: false }));
     app.use(async ctx => {
       ctx.body = await requestPromise({
         method: 'POST',
@@ -52,7 +52,7 @@ describe('transfer', () => {
 
   test('transfer stream', async () => {
     const buff = Buffer.from('test stream');
-    app.use(transfer({ noDisk: false }));
+    app.use(transfer({ onDisk: true }));
     app.use(async ctx => {
       ctx.body = await requestPromise({
         method: 'POST',
@@ -79,7 +79,7 @@ describe('parser', () => {
 
   test('parse to buffer', async () => {
     const buff = Buffer.from('test buffer');
-    app.use(transfer({ noDisk: true }));
+    app.use(transfer({ onDisk: false }));
     app.use(ctx => {
       expect(ctx.request.files).toHaveLength(1);
       ctx.request.files.map(file => {
@@ -95,7 +95,7 @@ describe('parser', () => {
   });
 
   test('parse fields', async () => {
-    app.use(transfer({ noDisk: true }));
+    app.use(transfer({ onDisk: false }));
     app.use(ctx => {
       expect(ctx.request.body)
         .toMatchObject({ whoami: 'Claude', pwd: 'test' });
@@ -110,7 +110,7 @@ describe('parser', () => {
   });
 
   test('ignore non-mulitpart', async () => {
-    app.use(transfer({ noDisk: true }));
+    app.use(transfer({ onDisk: false }));
     app.use(ctx => {
       expect(ctx.request.body).toBeUndefined();
       ctx.status = 200;
