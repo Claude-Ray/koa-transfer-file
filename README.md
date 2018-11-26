@@ -1,5 +1,7 @@
 # koa-transfer-file
+[![npm version](https://img.shields.io/npm/v/koa-transfer-file.svg)](https://www.npmjs.com/package/koa-transfer-file)
 [![Build Status](https://travis-ci.org/Claude-Ray/koa-transfer-file.svg?branch=master)](https://travis-ci.org/Claude-Ray/koa-transfer-file)
+[![codecov](https://codecov.io/gh/Claude-Ray/koa-transfer-file/branch/master/graph/badge.svg)](https://codecov.io/gh/Claude-Ray/koa-transfer-file)
 
 transfer file stream without saving to disk
 
@@ -7,6 +9,11 @@ transfer file stream without saving to disk
 - option `onDisk`: (boolean) It determines whether disk I/O is being used during transmission. Converting `Stream` to `Buffer` by array is unsafe when transferring big files. To avoid this problem, using file stream as a default. The temp file will be deleted after new `Readable` stream is built.
 
 - maintain files' name: When sending files to another server, filenames will be changed into tmpName because of the new readable stream. Solved by adding property `name` to the readable stream, due to the package `form-data` will name the file by `filestream.name` or `filestream.path` when appending data.
+
+## Install
+```
+npm install koa-transfer-file
+```
 
 ## Usage
 The `options` almost same as `busboy`.
