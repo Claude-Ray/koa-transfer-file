@@ -9,16 +9,43 @@ module.exports = (opts = {}) => async (ctx, next) => {
   if (!ctx.is('multipart')) return next();
 
   if (opts.onDisk == null) opts.onDisk = true;
+  // `appendFile` is deprecative
+  if (opts.appendFile == null) opts.appendFile = true;
 
   try {
     const { files, fields } = await multipartParser(ctx.req, opts);
 
     if (files.length) {
-      fields._files = opts.onDisk
-        ? files
-        : files.map(({ value, filename, mimetype }) => ({
-          value, options: { filename, contentType: mimetype }
-        }));
+      if (opts.appendField) {
+        const fileFields = {};
+        for (const file of files) {
+          const { fieldname: fieldName } = file;
+          const fieldValue = opts.onDisk ? file : {
+            value: file.value,
+            options: {
+              filename: file.filename,
+              contentType: file.mimetype
+            }
+          };
+
+          if (!fileFields[fieldName]) {
+            fileFields[fieldName] = fieldValue;
+          } else if (Array.isArray(fileFields[fieldName])) {
+            fileFields[fieldName].push(fieldValue);
+          } else {
+            fileFields[fieldName] = [fileFields[fieldName], fieldValue];
+          }
+        }
+
+        Object.assign(fields, fileFields);
+      } else if (opts.appendFile) {
+        ctx.request.formData = opts.onDisk
+          ? files
+          : files.map(({ value, filename, mimetype }) => ({
+            value, options: { filename, contentType: mimetype }
+          }));
+        fields._files = ctx.request.formData;
+      }
     }
 
     ctx.request.files = files;

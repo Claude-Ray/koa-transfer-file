@@ -4,6 +4,7 @@ const Busboy = require('busboy');
 const Koa = require('koa');
 const request = require('supertest');
 const requestPromise = require('request-promise');
+const { Readable } = require('stream');
 
 const transfer = require('..');
 
@@ -32,7 +33,7 @@ describe('transfer', () => {
 
   test('transfer buffer', async () => {
     const buff = Buffer.from('test buffer');
-    app.use(transfer({ onDisk: false }));
+    app.use(transfer({ onDisk: false, appendFile: true }));
     app.use(async ctx => {
       ctx.body = await requestPromise({
         method: 'POST',
@@ -64,6 +65,34 @@ describe('transfer', () => {
     await request(app.listen())
       .post('/')
       .attach('file', buff, 'stream.md')
+      .expect(200)
+      .then(res => {
+        expect(res.text).toBe('stream.md');
+      });
+  });
+
+  test('appendField', async () => {
+    const buff = Buffer.from('test stream');
+    app.use(transfer({ onDisk: true, appendField: true }));
+    app.use(async ctx => {
+      expect(ctx.request.body.triple).toHaveLength(3);
+      ctx.request.body.triple.map(fileStream => {
+        expect(fileStream).toBeInstanceOf(Readable);
+      });
+      expect(ctx.request.body.single).toBeInstanceOf(Readable);
+      ctx.body = await requestPromise({
+        method: 'POST',
+        uri: 'http://localhost:3000',
+        formData: ctx.request.body
+      });
+    });
+
+    await request(app.listen())
+      .post('/')
+      .attach('triple', buff, 'stream1.md')
+      .attach('triple', buff, 'stream2.md')
+      .attach('triple', buff, 'stream3.md')
+      .attach('single', buff, 'stream.md')
       .expect(200)
       .then(res => {
         expect(res.text).toBe('stream.md');
