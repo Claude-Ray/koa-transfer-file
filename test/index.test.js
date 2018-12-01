@@ -172,4 +172,17 @@ describe('parser', () => {
       .attach('file', buff, 'buff.md')
       .expect(200);
   });
+  test('escape own property', async () => {
+    app.use(transfer({ onDisk: false }));
+    app.use(ctx => {
+      expect(ctx.request.body)
+        .toMatchObject({ _hasOwnProperty: 'property' });
+      ctx.status = 200;
+    });
+
+    await request(app.listen())
+      .post('/')
+      .field({ hasOwnProperty: 'property' })
+      .expect(200);
+  });
 });

@@ -14,9 +14,9 @@ This package is mainly used for the middle layer.
 
 - maintain files' name: When sending files to another server, filenames will be changed into tmpName because of the new readable stream. Solved by adding property `name` to the readable stream, due to the package `form-data` will name the file by `filestream.name` or `filestream.path` when appending data.
 
-- options `appendField`: (boolean, default false) Append files to `ctx.request.body` in order to keep it(formData) the same as before the request was sent.
+- option `appendField`: (boolean, default false) Append files to `ctx.request.body` in order to keep it(formData) the same as before the request was sent.
 
-- options `appendFile`: (boolean, default true, **deprecative**) Highly recommanded `false`. Append all files in an array to `ctx.request.body` with fieldname `_files`. The difference between ctx.request.body._files and ctx.request.files is that `_files` has been formatted for the puropse of transferring directly by request.
+- option `appendFile`: (boolean, default true, **deprecative**) Highly recommanded `false`. Append all files in an array to `ctx.request.body` with fieldname `_files`. The difference between ctx.request.body._files and ctx.request.files is that `_files` has been formatted for the puropse of transferring directly by request.
   > The default value is only for compatibility with the old versions temporarily. It's innocent when you don't care about files' fieldname.
 
 ## Install

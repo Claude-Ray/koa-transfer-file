@@ -1,7 +1,7 @@
 {
   "name": "koa-transfer-file",
   "version": "0.1.1",
-  "description": "transfer file stream without saving to disk",
+  "description": "Transfer file stream without storing files",
   "main": "index.js",
   "scripts": {
     "test": "jest --forceExit",
@@ -11,6 +11,13 @@
     "type": "git",
     "url": "git+https://github.com/Claude-Ray/koa-transfer-file.git"
   },
+  "keywords": [
+    "koa",
+    "middleware",
+    "middle-layer",
+    "multipart",
+    "formdata"
+  ],
   "author": "claude-ray",
   "license": "MIT",
   "bugs": {
