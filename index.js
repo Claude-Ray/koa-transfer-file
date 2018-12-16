@@ -17,33 +17,12 @@ module.exports = (opts = {}) => async (ctx, next) => {
 
     if (files.length) {
       if (opts.appendField) {
-        const fileFields = {};
-        for (const file of files) {
-          const { fieldname: fieldName } = file;
-          const fieldValue = opts.onDisk ? file : {
-            value: file.value,
-            options: {
-              filename: file.filename,
-              contentType: file.mimetype
-            }
-          };
-
-          if (!fileFields[fieldName]) {
-            fileFields[fieldName] = fieldValue;
-          } else if (Array.isArray(fileFields[fieldName])) {
-            fileFields[fieldName].push(fieldValue);
-          } else {
-            fileFields[fieldName] = [fileFields[fieldName], fieldValue];
-          }
-        }
-
+        const fileFields = restoreFileField(files, opts);
         Object.assign(fields, fileFields);
       } else if (opts.appendFile) {
         ctx.request.formData = opts.onDisk
           ? files
-          : files.map(({ value, filename, mimetype }) => ({
-            value, options: { filename, contentType: mimetype }
-          }));
+          : files.map(file => adaptFieldValue(file));
         fields._files = ctx.request.formData;
       }
     }
@@ -62,7 +41,7 @@ module.exports = (opts = {}) => async (ctx, next) => {
  * @param {object}  req            ctx.req
  * @param {object}  [opts]         options for busboy
  * @param {boolean} [opts.onDisk]  IO on disk or memory
- * @return {{files: array, fields: object}}
+ * @return {{files: object[], fields: object}}
  */
 function multipartParser(req, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -101,6 +80,15 @@ function multipartParser(req, opts = {}) {
   });
 }
 
+/**
+ * Convert writable fileStream to readable fileStream
+ * @param {string} fieldname
+ * @param {string} fileStream
+ * @param {string} filename
+ * @param {string} encoding
+ * @param {string} mimetype
+ * @return {Promise.<ReadableStream>}
+ */
 function toReadStream(fieldname, fileStream, filename, encoding, mimetype) {
   return new Promise((resolve, reject) => {
     const tmpName = Date.now() + process.pid + fieldname + filename;
@@ -128,6 +116,15 @@ function toReadStream(fieldname, fileStream, filename, encoding, mimetype) {
   });
 }
 
+/**
+ * Convert writable fileStream to Buffer as part of an object
+ * @param {string} fieldname
+ * @param {string} fileStream
+ * @param {string} filename
+ * @param {string} encoding
+ * @param {string} mimetype
+ * @return {Promise.<object>}
+ */
 function toBuffer(fieldname, fileStream, filename, encoding, mimetype) {
   return new Promise((resolve, reject) => {
     const bufs = [];
@@ -146,4 +143,42 @@ function toBuffer(fieldname, fileStream, filename, encoding, mimetype) {
         })
       );
   });
+}
+
+/**
+ * Restore files' fields
+ * @param {object[]} files
+ * @param {object} opts
+ * @return {object}
+ */
+function restoreFileField(files, opts) {
+  const fileFields = {};
+  for (const file of files) {
+    const fieldValue = opts.onDisk ? file : adaptFieldValue(file);
+
+    const { fieldname: fieldName } = file;
+    if (!fileFields[fieldName]) {
+      fileFields[fieldName] = fieldValue;
+    } else if (Array.isArray(fileFields[fieldName])) {
+      fileFields[fieldName].push(fieldValue);
+    } else {
+      fileFields[fieldName] = [fileFields[fieldName], fieldValue];
+    }
+  }
+  return fileFields;
+}
+
+/**
+ * Adapt the file object to field value, as formData
+ * @param {object} file
+ * @return {object}
+ */
+function adaptFieldValue(file) {
+  return {
+    value: file.value,
+    options: {
+      filename: file.filename,
+      contentType: file.mimetype
+    }
+  };
 }
