@@ -42,20 +42,6 @@ const options = {
 app.use(transfer(options));
 ```
 
-Files can be got from `ctx.request.files`.
-```js
-ctx.request.files.forEach(file => {
-  const {
-    filename,
-    fieldname,
-    encoding,
-    mimetype,
-    value, // data in buffer
-    truncated,
-  } = file;
-});
-```
-
 ## Transfer
 Transfer formData by `request` directly.
 ```js
@@ -103,8 +89,37 @@ rs._read = () => {};
 rs.push(file.value);
 ```
 
-Then write the stream to the file.
+Then save the readable stream to the file.
 ```js
 rs.pipe(fs.createWriteStream(file.filename))
   .on('finish', () => console.log('saved'));;
 ```
+
+# API
+
+## Opts
+Please refer to [Featured](#Featured) for description of the options.
+
+## File information
+Files (<object[]>) can be got from `ctx.request.files`.
+
+The properties of each file are as shown below.
+
+### Certain Properties
+|Key|Desc|
+|---|---|
+|filename|original name of the file|
+|fieldname|field name specified in the form	|
+|encoding|-|
+|mimetype|-|
+|truncated|stream is truncated or not (file reached limit size)|
+
+### *opts.onDisk = true*
+|Key|Desc|
+|---|---|
+|name|alias of filename|
+
+### *opts.onDisk = false*
+|Key|Desc|
+|---|---|
+|value|file data in buffer|
