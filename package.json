@@ -1,6 +1,6 @@
 {
   "name": "koa-transfer-file",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Transfer file stream without storing files",
   "main": "index.js",
   "scripts": {

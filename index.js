@@ -12,26 +12,22 @@ module.exports = (opts = {}) => async (ctx, next) => {
   // `appendFile` is deprecative
   if (opts.appendFile == null) opts.appendFile = true;
 
-  try {
-    const { files, fields } = await multipartParser(ctx.req, opts);
+  const { files, fields } = await multipartParser(ctx.req, opts);
 
-    if (files.length) {
-      if (opts.appendField) {
-        const fileFields = restoreFileField(files, opts);
-        Object.assign(fields, fileFields);
-      } else if (opts.appendFile) {
-        ctx.request.formData = opts.onDisk
-          ? files
-          : files.map(file => adaptFieldValue(file));
-        fields._files = ctx.request.formData;
-      }
+  if (files.length) {
+    if (opts.appendField) {
+      const fileFields = restoreFileField(files, opts);
+      Object.assign(fields, fileFields);
+    } else if (opts.appendFile) {
+      ctx.request.formData = opts.onDisk
+        ? files
+        : files.map(file => adaptFieldValue(file));
+      fields._files = ctx.request.formData;
     }
-
-    ctx.request.files = files;
-    ctx.request.body = fields;
-  } catch (e) {
-    throw e;
   }
+
+  ctx.request.files = files;
+  ctx.request.body = fields;
 
   return next();
 };
@@ -60,7 +56,7 @@ function multipartParser(req, opts = {}) {
       if (keyTrunc) return reject(new Error(`Field name too long(${key})`));
       if (valTrunc) return reject(new Error(`Field value too long(${key})`));
 
-      if (key === 'hasOwnProperty') key = `_${key}`;
+      if (Object.getOwnPropertyDescriptor(Object.prototype, key)) key = `_${key}`;
 
       return fields[key] = val;
     });
